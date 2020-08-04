@@ -1,0 +1,2289 @@
+////#include <Windows.h>
+////#include<stdio.h>
+////#include<gl/glew.h>
+////#include<gl/GL.h>
+////
+////#include"vmath.h"
+////
+////#define WIN_WIDTH 800
+////#define WIN_HEIGHT 600
+////
+////#pragma comment(lib,"glew32.lib")
+////#pragma comment(lib,"opengl32.lib")
+////
+////using namespace vmath;
+////
+////
+////enum
+////{
+////	VDG_ATTRIBUTE_VERTEX = 0,
+////	VDG_ATTRIBUTE_COLOR,
+////	VDG_ATTRIBUTE_NORMAL,
+////	VDG_ATTRIBUTE_TEXTURE0,
+////};
+////
+//////Prototype of WndProc() declared Globally
+////LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+////
+////
+//////Global variable declarations
+////FILE *gpFile = NULL;
+////
+////HWND ghwnd = NULL;
+////HDC ghdc = NULL;
+////HGLRC ghrc = NULL;
+////
+////
+////DWORD dwStyle;
+////WINDOWPLACEMENT wpPrev = { sizeof(WINDOWPLACEMENT) };
+////
+////bool gbActiveWindow = false;
+////bool gbEscapeKeyIsPressed = false;
+////bool gbFullScreen = false;
+////
+////GLuint gVertexShaderObject;
+////GLuint gFragmentShaderObject;
+////GLuint gShaderProgramObject;
+////
+////GLuint gVao_Triangle;
+////GLuint gvao_Square;
+////GLuint gVbo;
+////GLuint gMVPUniform;
+////
+////mat4 gPerspectiveProjectionMatrix;
+////
+//////main()
+////int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
+////{
+////	//function prototype
+////	void display();
+////	void initialize();
+////	void uninitialize(void);
+////
+////	//variable declaration
+////	WNDCLASSEX wndclass;
+////	HWND hwnd;
+////	MSG msg;
+////	TCHAR szClassName[] = TEXT("OpenGLPP");
+////	bool bDone = false;
+////
+////	if (fopen_s(&gpFile, "Log.txt", "w") != 0)
+////	{
+////		MessageBox(NULL, TEXT("Log File Can not be Created\Exitting.."), TEXT("ERROR"), MB_OK | MB_TOPMOST | MB_ICONSTOP);
+////		exit(0);
+////	}
+////	else
+////	{
+////		fprintf(gpFile, "Log file is Successfully Openend \n");
+////	}
+////
+////	//code
+////	//initializing member of WNDCLASS
+////	wndclass.cbSize = sizeof(WNDCLASSEX);
+////	wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+////	wndclass.cbClsExtra = 0;
+////	wndclass.cbWndExtra = 0;
+////	wndclass.hInstance = hInstance;
+////	wndclass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+////	wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+////	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+////	wndclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+////	wndclass.lpfnWndProc = WndProc;
+////	wndclass.lpszClassName = szClassName;
+////	wndclass.lpszMenuName = NULL;
+////
+////	//Registering Class
+////	RegisterClassEx(&wndclass);
+////
+////	//CreateWindow
+////	hwnd = CreateWindowEx(WS_EX_APPWINDOW,
+////		szClassName,
+////		TEXT("OpenGL Programmable PipeLine Using Native Windowing: First ortho Trianle Window Shree Ganeshaya Namaha"),
+////		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
+////		0,
+////		0,
+////		WIN_WIDTH,
+////		WIN_HEIGHT,
+////		NULL,
+////		NULL,
+////		hInstance,
+////		NULL
+////		);
+////
+////	ghwnd = hwnd;
+////
+////	//intitialize()
+////	initialize();
+////
+////	ShowWindow(hwnd, SW_SHOW);
+////	SetForegroundWindow(hwnd);
+////	SetFocus(hwnd);
+////
+////	//Message Loop
+////	while (bDone == false)
+////	{
+////		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+////		{
+////			if (msg.message == WM_QUIT)
+////				bDone = true;
+////			else
+////			{
+////				TranslateMessage(&msg);
+////				DispatchMessage(&msg);
+////			}
+////		}
+////		else
+////		{
+////			//display();
+////			if (gbActiveWindow == true)
+////			{
+////				display();
+////
+////				if (gbEscapeKeyIsPressed == true)
+////					bDone = true;
+////			}
+////		}
+////	}
+////
+////	uninitialize();
+////	return((int)msg.wParam);
+////
+////}
+////
+//////WndProc()
+////LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+////{
+////	//function prototypes
+////	//	void display();
+////	void resize(int, int);
+////	void ToggleFullScreen(void);
+////	void uninitialize(void);
+////
+////	//code
+////	switch (iMsg)
+////	{
+////	case WM_ACTIVATE:
+////		if (HIWORD(wParam) == 0)
+////			gbActiveWindow = true;
+////		else
+////			gbActiveWindow = false;
+////		break;
+////	case WM_PAINT:
+////		//		display();
+////		break;
+////
+////	case WM_SIZE:
+////		resize(LOWORD(lParam), HIWORD(lParam));
+////		break;
+////
+////	case WM_KEYDOWN:
+////		switch (wParam)
+////		{
+////		case VK_ESCAPE:
+////			gbEscapeKeyIsPressed = true;
+////			break;
+////
+////		case 0x46:			//for 'f' or 'F'
+////			if (gbFullScreen == false)
+////			{
+////				ToggleFullScreen();
+////				gbFullScreen = true;
+////			}
+////			else
+////			{
+////				ToggleFullScreen();
+////				gbFullScreen = false;
+////			}
+////			break;
+////		default:
+////			break;
+////		}
+////		break;
+////
+////
+////	case WM_LBUTTONDOWN:
+////		break;
+////
+////	case WM_DESTROY:
+////		PostQuitMessage(0);
+////		break;
+////
+////	default:
+////		break;
+////	}
+////	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
+////
+////}
+////
+////
+////void ToggleFullScreen(void)
+////{
+////	//variable declarations
+////	MONITORINFO mi;
+////
+////	//code
+////	if (gbFullScreen == false)
+////	{
+////		dwStyle = GetWindowLong(ghwnd, GWL_STYLE);
+////		if (dwStyle & WS_OVERLAPPEDWINDOW)
+////		{
+////			mi = { sizeof(MONITORINFO) };
+////			if (GetWindowPlacement(ghwnd, &wpPrev) && GetMonitorInfo(MonitorFromWindow(ghwnd, MONITORINFOF_PRIMARY), &mi))
+////			{
+////				SetWindowLong(ghwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+////				SetWindowPos(ghwnd, HWND_TOP, mi.rcMonitor.left,
+////					mi.rcMonitor.top,
+////					mi.rcMonitor.right - mi.rcMonitor.left,
+////					mi.rcMonitor.bottom - mi.rcMonitor.top,
+////					SWP_NOZORDER | SWP_FRAMECHANGED);
+////			}
+////
+////		}
+////		ShowCursor(FALSE);
+////	}
+////	else
+////	{
+////		//code
+////		SetWindowLong(ghwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+////		SetWindowPlacement(ghwnd, &wpPrev);
+////		SetWindowPos(ghwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
+////		ShowCursor(TRUE);
+////	}
+////}
+////
+////void initialize()
+////{
+////	//function prototype
+////	void uninitialize(void);
+////	void resize(int, int);
+////
+////	//variable declaration
+////	PIXELFORMATDESCRIPTOR pfd;
+////	int iPixelFormatIndex;
+////
+////	//code
+////	ZeroMemory(&pfd, sizeof(PIXELFORMATDESCRIPTOR));
+////
+////	//Initialization code
+////	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+////	pfd.nVersion = 1;
+////	pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+////	pfd.iPixelType = PFD_TYPE_RGBA;
+////	pfd.cColorBits = 8;
+////	pfd.cRedBits = 8;
+////	pfd.cGreenBits = 8;
+////	pfd.cBlueBits = 8;
+////	pfd.cAlphaBits = 8;
+////
+////	ghdc = GetDC(ghwnd);
+////
+////	iPixelFormatIndex = ChoosePixelFormat(ghdc, &pfd);
+////	if (iPixelFormatIndex == 0)
+////	{
+////		ReleaseDC(ghwnd, ghdc);
+////		ghdc = NULL;
+////	}
+////	if (SetPixelFormat(ghdc, iPixelFormatIndex, &pfd) == FALSE)
+////	{
+////		ReleaseDC(ghwnd, ghdc);
+////		ghdc = NULL;
+////	}
+////
+////	ghrc = wglCreateContext(ghdc);
+////	if (ghrc == NULL)
+////	{
+////		ReleaseDC(ghwnd, ghdc);
+////		ghdc = NULL;
+////	}
+////
+////	if (wglMakeCurrent(ghdc, ghrc) == FALSE)
+////	{
+////		wglDeleteContext(ghrc);
+////		ghrc = NULL;
+////		ReleaseDC(ghwnd, ghdc);
+////		ghdc = NULL;
+////	}
+////
+////	GLenum glew_error = glewInit();
+////	if (glew_error != GLEW_OK)
+////	{
+////		wglDeleteContext(ghrc);
+////		ghrc = NULL;
+////		ReleaseDC(ghwnd, ghdc);
+////		ghdc = NULL;
+////	}
+////
+////	//******** VERTEX SHADER ******
+////	//create shader
+////	gVertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
+////
+////	//provide source code to shader
+////	const GLchar *vertexShaderSourceCode =
+////		"#version 430 core" \
+////		"\n" \
+////		"in vec4 vPosition;" \
+////		"uniform mat4 u_mvp_matrix;" \
+////		"void main(void)" \
+////		"{" \
+////		"gl_Position = u_mvp_matrix * vPosition;" \
+////		"}";
+////
+////	glShaderSource(gVertexShaderObject, 1, (const GLchar **)&vertexShaderSourceCode, NULL);
+////
+////	//compile shader
+////	glCompileShader(gVertexShaderObject);
+////	GLint iInfoLength = 0;
+////	GLint iShaderCompiledStatus = 0;
+////	char *szInfoLog = NULL;
+////
+////	glGetShaderiv(gVertexShaderObject, GL_COMPILE_STATUS, &iShaderCompiledStatus);
+////	if (iShaderCompiledStatus == GL_FALSE)
+////	{
+////		glGetShaderiv(gVertexShaderObject, GL_INFO_LOG_LENGTH, &iInfoLength);
+////		if (iInfoLength > 0)
+////		{
+////			szInfoLog = (char *)malloc(iInfoLength);
+////			if (szInfoLog != NULL)
+////			{
+////				GLsizei written;
+////				glGetShaderInfoLog(gVertexShaderObject, iInfoLength, &written, szInfoLog);
+////				fprintf(gpFile, "Vertex Shader Compilation Log:%s\n", szInfoLog);
+////				free(szInfoLog);
+////				uninitialize();
+////				exit(0);
+////			}
+////		}
+////	}
+////
+////	//**********FRAGMENT SHADER*********
+////	//create shader
+////	gFragmentShaderObject = glCreateShader(GL_FRAGMENT_SHADER);
+////
+////	//provide source code to shader
+////	const GLchar *fragmentShaderSourceCode =
+////		"#version 430 core" \
+////		"\n" \
+////		"out vec4 FragColor;" \
+////		"void main (void)" \
+////		"{" \
+////		"FragColor = vec4(1.0, 1.0f, 1.0, 1.0);" \
+////		"}";
+////
+////	glShaderSource(gFragmentShaderObject, 1, (const GLchar**)&fragmentShaderSourceCode, NULL);
+////
+////	//compile shader
+////	glCompileShader(gFragmentShaderObject);
+////	glGetShaderiv(gFragmentShaderObject, GL_COMPILE_STATUS, &iShaderCompiledStatus);
+////	if (iShaderCompiledStatus == GL_FALSE)
+////	{
+////		glGetShaderiv(gFragmentShaderObject, GL_INFO_LOG_LENGTH, &iShaderCompiledStatus);
+////		if (iInfoLength > 0)
+////		{
+////			szInfoLog = (char *)malloc(iInfoLength);
+////			if (szInfoLog != NULL)
+////			{
+////				GLsizei written;
+////				glGetShaderInfoLog(gFragmentShaderObject, iInfoLength, &written, szInfoLog);
+////				fprintf(gpFile, "Fragment Shader Compilation Log : %s\n", szInfoLog);
+////				free(szInfoLog);
+////				uninitialize();
+////				exit(0);
+////			}
+////		}
+////	}
+////
+////
+////
+////	//********** SHADER PROGRAM *********
+////	//create
+////	gShaderProgramObject = glCreateProgram();
+////
+////	//attach vertex shader to shader program
+////	glAttachShader(gShaderProgramObject, gVertexShaderObject);
+////
+////	//attach fragment shader to shader program
+////	glAttachShader(gShaderProgramObject, gFragmentShaderObject);
+////
+////	//pre-link binding of shader program object with vertex position attribute
+////	glBindAttribLocation(gShaderProgramObject, VDG_ATTRIBUTE_VERTEX, "vPosition");
+////
+////
+////	//Link Shader
+////	glLinkProgram(gShaderProgramObject);
+////	GLint iShaderProgramLinkStatus = 0;
+////	glGetProgramiv(gShaderProgramObject, GL_LINK_STATUS, &iShaderProgramLinkStatus);
+////	if (iShaderProgramLinkStatus == GL_FALSE)
+////	{
+////		glGetProgramiv(gShaderProgramObject, GL_INFO_LOG_LENGTH, &iInfoLength);
+////		if (iInfoLength > 0)
+////		{
+////			szInfoLog = (char *)malloc(iInfoLength);
+////			if (szInfoLog != NULL)
+////			{
+////				GLsizei written;
+////				glGetProgramInfoLog(gShaderProgramObject, iInfoLength, &written, szInfoLog);
+////				fprintf(gpFile, "Shader Program LinK Log %s\n");
+////				free(szInfoLog);
+////				uninitialize();
+////				exit(0);
+////			}
+////		}
+////	}
+////
+////
+////	//get MVP uniform locaion
+////	gMVPUniform = glGetUniformLocation(gShaderProgramObject, "u_mvp_matrix");
+////
+////	//**** vertices, colors, shader attribs, vbo, vao initializations ****//
+////
+////	const GLfloat triangleVertices[] =
+////	{
+////		0.0f, 1.0f, 0.0f,		//apex
+////		-1.0f, -1.0f, 0.0f,	//left bottom
+////		1.0f, -1.0f, 0.0f		//right bottom
+////	};
+////
+////	const GLfloat squareVertices[] = 
+////	{
+////		-1.0f,1.0f,0.0f,
+////		-1.0f,-1.0f,0.0f,
+////		 1.0f,-1.0f,0.0f,
+////		 1.0f,1.0f,0.0f
+////	};
+////
+////	glGenVertexArrays(1, &gVao_Triangle);
+////	glBindVertexArray(gVao_Triangle);
+////
+////	glGenBuffers(1, &gVbo);
+////	glBindBuffer(GL_ARRAY_BUFFER, gVbo);
+////	glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), triangleVertices, GL_STATIC_DRAW);
+////	glVertexAttribPointer(VDG_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+////	glEnableVertexAttribArray(VDG_ATTRIBUTE_VERTEX);
+////
+////	glBindBuffer(GL_ARRAY_BUFFER, 0);			//fininshing/completion of above gVbo buffer state
+////
+////	glBindVertexArray(0);
+////
+////	glGenVertexArrays(1, &gvao_Square);
+////	glBindVertexArray(gvao_Square);
+////
+////	glGenBuffers(1, &gVbo);
+////	glBindBuffer(GL_ARRAY_BUFFER, gVbo);
+////	glBufferData(GL_ARRAY_BUFFER, sizeof(squareVertices), squareVertices, GL_STATIC_DRAW);
+////	glVertexAttribPointer(VDG_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+////	glEnableVertexAttribArray(VDG_ATTRIBUTE_VERTEX);
+////
+////	glBindBuffer(GL_ARRAY_BUFFER, 0);
+////	glBindVertexArray(0);					//finishing completion of above gVaoSquare
+////
+////
+////	glShadeModel(GL_FLAT);
+////	glClearDepth(1.0f);
+////	glEnable(GL_DEPTH_TEST);
+////	glDepthFunc(GL_LEQUAL);
+////	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+////	glEnable(GL_CULL_FACE);
+////
+////	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+////
+////	gPerspectiveProjectionMatrix = mat4::identity();
+////
+////	resize(WIN_WIDTH, WIN_HEIGHT);
+////
+////}
+////
+////void display(void)
+////{
+////	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+////
+////	//start using OpenGL program Object
+////	glUseProgram(gShaderProgramObject);
+////
+////	//OpenL Drawing 
+////	//set modelview & modelviewprojection matrices to identity 
+////	mat4 modelviewMatrix = mat4::identity();
+////	mat4 modelviewProjectionMatrix = mat4::identity();
+////	modelviewMatrix = translate(-1.5f, 0.0f, -6.0f);
+////
+////	//multipley the modelview and orthographic matrix to get modelviewprojection matrix
+////	modelviewProjectionMatrix = gPerspectiveProjectionMatrix * modelviewMatrix;	//ORDER IS IMPORTANT
+////
+////																				//pass above modelviewprojection matrix to the vertex shader in 'u_mvp_matrix' shader variable
+////																				//whose position value we already calculated in initWithFrame() by using glGetUniformLocation()
+////
+////	glUniformMatrix4fv(gMVPUniform, 1, GL_FALSE, modelviewProjectionMatrix);
+////
+////	//*** bind vao ****
+////	glBindVertexArray(gVao_Triangle);
+////
+////	// ****  draw either by glDrawTriangles() or glDrawarrays() or glDrawElements()
+////	glDrawArrays(GL_TRIANGLES, 0, 3);			//(each with its x,y,z ) vertices in triangleVertices array
+////
+////	glBindVertexArray(0);
+////
+////	 modelviewMatrix = mat4::identity();
+////	 modelviewProjectionMatrix = mat4::identity();
+////	modelviewMatrix = translate(1.5f, 0.0f, -6.0f);
+////
+////	modelviewProjectionMatrix = gPerspectiveProjectionMatrix * modelviewMatrix;
+////
+////	glUniformMatrix4fv(gMVPUniform, 1, GL_FALSE, modelviewProjectionMatrix);
+////	glBindVertexArray(gvao_Square);
+////
+////	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+////	//**** unbind vao ****
+////	glBindVertexArray(0);
+////
+////	//stop using OpenGL program Object
+////	glUseProgram(0);
+////
+////	SwapBuffers(ghdc);
+////
+////}
+////
+////void resize(int width, int height)
+////{
+////	//code
+////	if (height == 0)
+////		height = 1;
+////	glViewport(0, 0, (GLsizei)width, (GLsizei)height);
+////
+////	gPerspectiveProjectionMatrix = perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
+////}
+////
+////void uninitialize(void)
+////{
+////	//UNINITIALIZATION CODE
+////	if (gbFullScreen == true)
+////	{
+////		dwStyle = GetWindowLong(ghwnd, GWL_STYLE);
+////		SetWindowLong(ghwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+////		SetWindowPlacement(ghwnd, &wpPrev);
+////		SetWindowPos(ghwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
+////		ShowCursor(TRUE);
+////	}
+////
+////	//destroy vao
+////	if (gVao_Triangle)
+////	{
+////		glDeleteVertexArrays(1, &gVao_Triangle);
+////		gVao_Triangle = 0;
+////	}
+////
+////	if (gvao_Square)
+////	{
+////		glDeleteVertexArrays(1, &gvao_Square);
+////		gvao_Square = 0;
+////	}
+////
+////	//destroy vbo
+////	if (gVbo)
+////	{
+////		glDeleteBuffers(1, &gVbo);
+////		gVbo = 0;
+////	}
+////
+////
+////	//detach vertex shader from shader program object
+////	glDetachShader(gShaderProgramObject, gVertexShaderObject);
+////
+////	//detach fragment shader from shader program object
+////	glDetachShader(gShaderProgramObject, gFragmentShaderObject);
+////
+////	//delete vertex shader object 
+////	glDeleteShader(gVertexShaderObject);
+////	gVertexShaderObject = 0;
+////
+////	//delete fragment shader object
+////	glDeleteShader(gFragmentShaderObject);
+////	gFragmentShaderObject = 0;
+////
+////	//unlink shader program
+////	glUseProgram(0);
+////
+////	wglMakeCurrent(NULL, NULL);
+////
+////	wglDeleteContext(ghrc);
+////	ghrc = NULL;
+////
+////	ReleaseDC(ghwnd, ghdc);
+////	ghdc = NULL;
+////
+////	DestroyWindow(ghwnd);
+////	ghwnd = NULL;
+////
+////}
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////#include <Windows.h>
+////#include<stdio.h>
+////#include<gl/glew.h>
+////#include<gl/GL.h>
+////
+////#include"vmath.h"
+////
+////#define WIN_WIDTH 800
+////#define WIN_HEIGHT 600
+////
+////#pragma comment(lib,"glew32.lib")
+////#pragma comment(lib,"opengl32.lib")
+////
+////using namespace vmath;
+////
+////
+////enum
+////{
+////	VDG_ATTRIBUTE_VERTEX = 0,
+////	VDG_ATTRIBUTE_COLOR,
+////	VDG_ATTRIBUTE_NORMAL,
+////	VDG_ATTRIBUTE_TEXTURE0,
+////};
+////
+//////Prototype of WndProc() declared Globally
+////LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+////
+////
+//////Global variable declarations
+////FILE *gpFile = NULL;
+////
+////HWND ghwnd = NULL;
+////HDC ghdc = NULL;
+////HGLRC ghrc = NULL;
+////
+////
+////DWORD dwStyle;
+////WINDOWPLACEMENT wpPrev = { sizeof(WINDOWPLACEMENT) };
+////
+////bool gbActiveWindow = false;
+////bool gbEscapeKeyIsPressed = false;
+////bool gbFullScreen = false;
+////
+////GLuint gVertexShaderObject;
+////GLuint gFragmentShaderObject;
+////GLuint gShaderProgramObject;
+////
+////GLuint gVao_Triangle;
+////GLuint gvao_Square;
+////GLuint gVbo;
+////GLuint vboNormals;
+////GLuint gMVPUniform;
+////GLuint gmodelViewUniform;
+////
+////
+////GLfloat BrickColor[] = { 1.0,0.3,0.2 };
+////GLfloat MortarColor[] = { 0.85f,0.86f,0.84f };
+////GLfloat BrickSize[] = { 0.30,0.15};
+////GLfloat BrickPct[] = { 0.90,0.85 };
+////GLfloat lightPosition[] = { 0.0f,0.0f,4.0f };
+////
+////
+//////GLuint gVao_Smiley;
+//////GLuint gVbo_Smiley_position;
+//////GLuint gVbo_Smiley_texture;
+////GLuint gMVPMatrixUniform;
+////GLuint BrickColUniform;
+////GLuint MortarColorUniform;
+////GLuint BrickSizeUniform;
+////GLuint BrickPckUniform;
+////GLuint lightPositionUniform;
+////
+////mat4 gPerspectiveProjectionMatrix;
+////
+//////main()
+////int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
+////{
+////	//function prototype
+////	void display();
+////	void initialize();
+////	void uninitialize(void);
+////
+////	//variable declaration
+////	WNDCLASSEX wndclass;
+////	HWND hwnd;
+////	MSG msg;
+////	TCHAR szClassName[] = TEXT("OpenGLPP");
+////	bool bDone = false;
+////
+////	if (fopen_s(&gpFile, "Log.txt", "w") != 0)
+////	{
+////		MessageBox(NULL, TEXT("Log File Can not be Created\Exitting.."), TEXT("ERROR"), MB_OK | MB_TOPMOST | MB_ICONSTOP);
+////		exit(0);
+////	}
+////	else
+////	{
+////		fprintf(gpFile, "Log file is Successfully Openend \n");
+////	}
+////
+////	//code
+////	//initializing member of WNDCLASS
+////	wndclass.cbSize = sizeof(WNDCLASSEX);
+////	wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+////	wndclass.cbClsExtra = 0;
+////	wndclass.cbWndExtra = 0;
+////	wndclass.hInstance = hInstance;
+////	wndclass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+////	wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+////	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+////	wndclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+////	wndclass.lpfnWndProc = WndProc;
+////	wndclass.lpszClassName = szClassName;
+////	wndclass.lpszMenuName = NULL;
+////
+////	//Registering Class
+////	RegisterClassEx(&wndclass);
+////
+////	//CreateWindow
+////	hwnd = CreateWindowEx(WS_EX_APPWINDOW,
+////		szClassName,
+////		TEXT("OpenGL Programmable PipeLine Using Native Windowing: First ortho Trianle Window Shree Ganeshaya Namaha"),
+////		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
+////		0,
+////		0,
+////		WIN_WIDTH,
+////		WIN_HEIGHT,
+////		NULL,
+////		NULL,
+////		hInstance,
+////		NULL
+////		);
+////
+////	ghwnd = hwnd;
+////
+////	//intitialize()
+////	initialize();
+////
+////	ShowWindow(hwnd, SW_SHOW);
+////	SetForegroundWindow(hwnd);
+////	SetFocus(hwnd);
+////
+////	//Message Loop
+////	while (bDone == false)
+////	{
+////		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+////		{
+////			if (msg.message == WM_QUIT)
+////				bDone = true;
+////			else
+////			{
+////				TranslateMessage(&msg);
+////				DispatchMessage(&msg);
+////			}
+////		}
+////		else
+////		{
+////			//display();
+////			if (gbActiveWindow == true)
+////			{
+////				display();
+////
+////				if (gbEscapeKeyIsPressed == true)
+////					bDone = true;
+////			}
+////		}
+////	}
+////
+////	uninitialize();
+////	return((int)msg.wParam);
+////
+////}
+////
+//////WndProc()
+////LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+////{
+////	//function prototypes
+////	//	void display();
+////	void resize(int, int);
+////	void ToggleFullScreen(void);
+////	void uninitialize(void);
+////
+////	//code
+////	switch (iMsg)
+////	{
+////	case WM_ACTIVATE:
+////		if (HIWORD(wParam) == 0)
+////			gbActiveWindow = true;
+////		else
+////			gbActiveWindow = false;
+////		break;
+////	case WM_PAINT:
+////		//		display();
+////		break;
+////
+////	case WM_SIZE:
+////		resize(LOWORD(lParam), HIWORD(lParam));
+////		break;
+////
+////	case WM_KEYDOWN:
+////		switch (wParam)
+////		{
+////		case VK_ESCAPE:
+////			gbEscapeKeyIsPressed = true;
+////			break;
+////
+////		case 0x46:			//for 'f' or 'F'
+////			if (gbFullScreen == false)
+////			{
+////				ToggleFullScreen();
+////				gbFullScreen = true;
+////			}
+////			else
+////			{
+////				ToggleFullScreen();
+////				gbFullScreen = false;
+////			}
+////			break;
+////		default:
+////			break;
+////		}
+////		break;
+////
+////
+////	case WM_LBUTTONDOWN:
+////		break;
+////
+////	case WM_DESTROY:
+////		PostQuitMessage(0);
+////		break;
+////
+////	default:
+////		break;
+////	}
+////	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
+////
+////}
+////
+////
+////void ToggleFullScreen(void)
+////{
+////	//variable declarations
+////	MONITORINFO mi;
+////
+////	//code
+////	if (gbFullScreen == false)
+////	{
+////		dwStyle = GetWindowLong(ghwnd, GWL_STYLE);
+////		if (dwStyle & WS_OVERLAPPEDWINDOW)
+////		{
+////			mi = { sizeof(MONITORINFO) };
+////			if (GetWindowPlacement(ghwnd, &wpPrev) && GetMonitorInfo(MonitorFromWindow(ghwnd, MONITORINFOF_PRIMARY), &mi))
+////			{
+////				SetWindowLong(ghwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+////				SetWindowPos(ghwnd, HWND_TOP, mi.rcMonitor.left,
+////					mi.rcMonitor.top,
+////					mi.rcMonitor.right - mi.rcMonitor.left,
+////					mi.rcMonitor.bottom - mi.rcMonitor.top,
+////					SWP_NOZORDER | SWP_FRAMECHANGED);
+////			}
+////
+////		}
+////		ShowCursor(FALSE);
+////	}
+////	else
+////	{
+////		//code
+////		SetWindowLong(ghwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+////		SetWindowPlacement(ghwnd, &wpPrev);
+////		SetWindowPos(ghwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
+////		ShowCursor(TRUE);
+////	}
+////}
+////
+////void initialize()
+////{
+////	//function prototype
+////	void uninitialize(void);
+////	void resize(int, int);
+////
+////	//variable declaration
+////	PIXELFORMATDESCRIPTOR pfd;
+////	int iPixelFormatIndex;
+////
+////	//code
+////	ZeroMemory(&pfd, sizeof(PIXELFORMATDESCRIPTOR));
+////
+////	//Initialization code
+////	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+////	pfd.nVersion = 1;
+////	pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+////	pfd.iPixelType = PFD_TYPE_RGBA;
+////	pfd.cColorBits = 8;
+////	pfd.cRedBits = 8;
+////	pfd.cGreenBits = 8;
+////	pfd.cBlueBits = 8;
+////	pfd.cAlphaBits = 8;
+////
+////	ghdc = GetDC(ghwnd);
+////
+////	iPixelFormatIndex = ChoosePixelFormat(ghdc, &pfd);
+////	if (iPixelFormatIndex == 0)
+////	{
+////		ReleaseDC(ghwnd, ghdc);
+////		ghdc = NULL;
+////	}
+////	if (SetPixelFormat(ghdc, iPixelFormatIndex, &pfd) == FALSE)
+////	{
+////		ReleaseDC(ghwnd, ghdc);
+////		ghdc = NULL;
+////	}
+////
+////	ghrc = wglCreateContext(ghdc);
+////	if (ghrc == NULL)
+////	{
+////		ReleaseDC(ghwnd, ghdc);
+////		ghdc = NULL;
+////	}
+////
+////	if (wglMakeCurrent(ghdc, ghrc) == FALSE)
+////	{
+////		wglDeleteContext(ghrc);
+////		ghrc = NULL;
+////		ReleaseDC(ghwnd, ghdc);
+////		ghdc = NULL;
+////	}
+////
+////	GLenum glew_error = glewInit();
+////	if (glew_error != GLEW_OK)
+////	{
+////		wglDeleteContext(ghrc);
+////		ghrc = NULL;
+////		ReleaseDC(ghwnd, ghdc);
+////		ghdc = NULL;
+////	}
+////
+////	//******** VERTEX SHADER ******
+////	//create shader
+////	gVertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
+////
+////	//provide source code to shader
+////	const GLchar *vertexShaderSourceCode =
+////		"#version 430 core" \
+////		"\n" \
+////		"in vec4 vPosition;" \
+////		"in vec3 vNormal;" \
+////		"uniform vec3 u_light_position;" \
+////		"uniform mat4 u_model_view_matrix;" \
+////		"uniform mat4 u_model_view_projection_matrix;"\
+////		"out float LightIntensity;" \
+////		"out vec2 MCposition;" \
+////
+////		"const float SpecularContribution = 0.3;" \
+////		"const float DiffuseContribution = 1.0 - SpecularContribution;" \
+////		"void main(void)" \
+////		"{" \
+////		"vec4 eye_coordinates= u_model_view_matrix *vPosition;" \
+////		"vec3 transformed_normals = normalize(mat3(u_model_view_matrix) * vNormal);" \
+////		"vec3 light_direction = normalize(vec3(u_light_position) - eye_coordinates.xyz);"\
+////		"vec3 reflection_vector = reflect(-light_direction,transformed_normals);"\
+////		"vec3 viewer_vector = normalize(-eye_coordinates.xyz);" \
+////		"float diffuse = max(dot(light_direction,transformed_normals),0.0);" \
+////		"float spec =0.0;" \
+////
+////		"if(diffuse > 0.0)" \
+////		"{" \
+////		"spec = max(dot(reflection_vector,viewer_vector),0.0);"\
+////		"spec = pow(spec,16.0);" \
+////		"}" \
+////		"LightIntensity= DiffuseContribution * diffuse + SpecularContribution * spec;" \
+////		"MCposition = vPosition.xy;" \
+////		"gl_Position =  u_model_view_projection_matrix *u_model_view_matrix* vPosition;" \
+////		"}";
+////
+////	glShaderSource(gVertexShaderObject, 1, (const GLchar **)&vertexShaderSourceCode, NULL);
+////
+////	//compile shader
+////	glCompileShader(gVertexShaderObject);
+////	GLint iInfoLength = 0;
+////	GLint iShaderCompiledStatus = 0;
+////	char *szInfoLog = NULL;
+////
+////	glGetShaderiv(gVertexShaderObject, GL_COMPILE_STATUS, &iShaderCompiledStatus);
+////	if (iShaderCompiledStatus == GL_FALSE)
+////	{
+////		glGetShaderiv(gVertexShaderObject, GL_INFO_LOG_LENGTH, &iInfoLength);
+////		if (iInfoLength > 0)
+////		{
+////			szInfoLog = (char *)malloc(iInfoLength);
+////			if (szInfoLog != NULL)
+////			{	
+////				GLsizei written;
+////				glGetShaderInfoLog(gVertexShaderObject, iInfoLength, &written, szInfoLog);
+////				fprintf(gpFile, "Vertex Shader Compilation Log:%s\n", szInfoLog);
+////				free(szInfoLog);
+////				uninitialize();
+////				exit(0);
+////			}
+////		}
+////	}
+////
+////	//**********FRAGMENT SHADER*********
+////	//create shader
+////	gFragmentShaderObject = glCreateShader(GL_FRAGMENT_SHADER);
+////
+////	//provide source code to shader
+////	const GLchar *fragmentShaderSourceCode =
+////		"#version 430 core" \
+////		"\n" \
+////		"uniform vec3 BrickColor,MortarColor;" \
+////		"uniform vec2 BrickSize;" \
+////		"uniform vec2 BrickPct;" \
+////		"in vec2 MCposition;" \
+////		"in float LightIntensity;" \
+////		"out vec4 FragColor;" \
+////
+////		"void main(void)" \
+////		"{" \
+////		"vec3 color;" \
+////		"vec2 position,useBrick;" \
+////		"position = MCposition/BrickSize;" \
+////		"if(fract(position.y * 0.5) > 0.5)" \
+////		"{" \
+////		"position.x += 0.5;" \
+//////		"position.y += 0.5;" \
+////
+////		"}" \
+////		"position = fract(position);"\
+////		"useBrick = step(position,BrickPct);" \
+////		"color = mix(MortarColor,BrickColor,useBrick.x * useBrick.y);" \
+////		"color *= LightIntensity;" \
+////		"FragColor = vec4(color,1.0);" \
+////		"}";
+////
+////	glShaderSource(gFragmentShaderObject, 1, (const GLchar**)&fragmentShaderSourceCode, NULL);
+////
+////	//compile shader
+////	glCompileShader(gFragmentShaderObject);
+////	glGetShaderiv(gFragmentShaderObject, GL_COMPILE_STATUS, &iShaderCompiledStatus);
+////	if (iShaderCompiledStatus == GL_FALSE)
+////	{
+////		glGetShaderiv(gFragmentShaderObject, GL_INFO_LOG_LENGTH, &iShaderCompiledStatus);
+////		if (iInfoLength > 0)
+////		{
+////			szInfoLog = (char *)malloc(iInfoLength);
+////			if (szInfoLog != NULL)
+////			{
+////				GLsizei written;
+////				glGetShaderInfoLog(gFragmentShaderObject, iInfoLength, &written, szInfoLog);
+////				fprintf(gpFile, "Fragment Shader Compilation Log : %s\n", szInfoLog);
+////				free(szInfoLog);
+////				uninitialize();
+////				exit(0);
+////			}
+////		}
+////	}
+////
+////
+////
+////	//********** SHADER PROGRAM *********
+////	//create
+////	gShaderProgramObject = glCreateProgram();
+////
+////	//attach vertex shader to shader program
+////	glAttachShader(gShaderProgramObject, gVertexShaderObject);
+////
+////	//attach fragment shader to shader program
+////	glAttachShader(gShaderProgramObject, gFragmentShaderObject);
+////
+////	//pre-link binding of shader program object with vertex position attribute
+////	glBindAttribLocation(gShaderProgramObject, VDG_ATTRIBUTE_VERTEX, "vPosition");
+////
+////	glBindAttribLocation(gShaderProgramObject, VDG_ATTRIBUTE_NORMAL, "vNormal");
+////
+////	//Link Shader
+////	glLinkProgram(gShaderProgramObject);
+////	GLint iShaderProgramLinkStatus = 0;
+////	glGetProgramiv(gShaderProgramObject, GL_LINK_STATUS, &iShaderProgramLinkStatus);
+////	if (iShaderProgramLinkStatus == GL_FALSE)
+////	{
+////		glGetProgramiv(gShaderProgramObject, GL_INFO_LOG_LENGTH, &iInfoLength);
+////		if (iInfoLength > 0)
+////		{
+////			szInfoLog = (char *)malloc(iInfoLength);
+////			if (szInfoLog != NULL)
+////			{
+////				GLsizei written;
+////				glGetProgramInfoLog(gShaderProgramObject, iInfoLength, &written, szInfoLog);
+////				fprintf(gpFile, "Shader Program LinK Log %s\n");
+////				free(szInfoLog);
+////				uninitialize();
+////				exit(0);
+////			}
+////		}
+////	}
+////
+////
+////	//get MVP uniform locaion
+////	gmodelViewUniform = glGetUniformLocation(gShaderProgramObject, "u_model_view_matrix");
+////
+////	BrickColUniform = glGetUniformLocation(gShaderProgramObject, "BrickColor");
+////	BrickPckUniform = glGetUniformLocation(gShaderProgramObject, "BrickPct");
+////
+////	BrickSizeUniform = glGetUniformLocation(gShaderProgramObject, "BrickSize");
+////	MortarColorUniform = glGetUniformLocation(gShaderProgramObject, "MortarColor");
+////	lightPositionUniform = glGetUniformLocation(gShaderProgramObject, "u_light_position");
+////	gMVPMatrixUniform = glGetUniformLocation(gShaderProgramObject, "u_model_view_projection_matrix");
+////
+////	//**** vertices, colors, shader attribs, vbo, vao initializations ****//
+////
+////	const GLfloat normal[] =
+////	{
+////		0.0f, 1.0f, 0.0f,
+////	
+////		0.0f,-1.0f, 0.0f,
+////
+////		0.0f, 0.0f, 1.0f,
+////		
+////		0.0f, 0.0f, -1.0f,
+////
+//////		1.0f, 0.0f, 0.0f,
+////
+//////		-1.0f, 0.0f, 0.0f,
+////	};
+////
+////	const GLfloat squareVertices[] =
+////	{
+////		-1.0f,1.0f,0.0f,
+////		-1.0f,-1.0f,0.0f,
+////		1.0f,-1.0f,0.0f,
+////		1.0f,1.0f,0.0f
+////	};
+////
+////
+////
+////	glGenVertexArrays(1, &gvao_Square);
+////	glBindVertexArray(gvao_Square);
+////
+////	glGenBuffers(1, &gVbo);
+////	glBindBuffer(GL_ARRAY_BUFFER, gVbo);
+////	glBufferData(GL_ARRAY_BUFFER, sizeof(squareVertices), squareVertices, GL_STATIC_DRAW);
+////	glVertexAttribPointer(VDG_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+////	glEnableVertexAttribArray(VDG_ATTRIBUTE_VERTEX);
+////
+////	glBindBuffer(GL_ARRAY_BUFFER, 0);
+////
+////	glGenBuffers(1, &vboNormals);
+////	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+////	glBufferData(GL_ARRAY_BUFFER, sizeof(normal), normal, GL_STATIC_DRAW);
+////	glVertexAttribPointer(VDG_ATTRIBUTE_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+////	glEnableVertexAttribArray(VDG_ATTRIBUTE_NORMAL);
+////
+////	glBindBuffer(GL_ARRAY_BUFFER, 0);
+////	glBindVertexArray(0);					//finishing completion of above gVaoSquare
+////
+////
+////	glShadeModel(GL_FLAT);
+////	glClearDepth(1.0f);
+////	glEnable(GL_DEPTH_TEST);
+////	glDepthFunc(GL_LEQUAL);
+////	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+////	//glEnable(GL_CULL_FACE);
+////
+////	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+////
+////	gPerspectiveProjectionMatrix = mat4::identity();
+////
+////	resize(WIN_WIDTH, WIN_HEIGHT);
+////
+////}
+////
+////void display(void)
+////{
+////	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+////
+////	//start using OpenGL program Object
+////	glUseProgram(gShaderProgramObject);
+////
+////	//OpenL Drawing 
+////	//set modelview & modelviewprojection matrices to identity 
+////	mat4 modelviewMatrix = mat4::identity();
+////	mat4 modelviewProjectionMatrix = mat4::identity();
+////	modelviewMatrix = translate(0.0f, 0.0f, -3.0f);
+////
+////	//multipley the modelview and orthographic matrix to get modelviewprojection matrix
+////	modelviewProjectionMatrix = gPerspectiveProjectionMatrix * modelviewMatrix;	//ORDER IS IMPORTANT
+////																				
+////	glUniformMatrix4fv(gMVPMatrixUniform, 1, GL_FALSE, modelviewProjectionMatrix);
+////
+////	glUniformMatrix4fv(gmodelViewUniform, 1, GL_FALSE, modelviewMatrix);
+////
+////	glUniformMatrix4fv(BrickColUniform, 1, GL_FALSE,BrickColor);
+////	glUniformMatrix3fv(BrickPckUniform, 1, GL_FALSE, BrickPct);
+////	glUniformMatrix4fv(MortarColorUniform, 1, GL_FALSE,MortarColor);
+////	glUniformMatrix3fv(BrickSizeUniform, 1, GL_FALSE, BrickSize);
+////	glUniformMatrix4fv(lightPositionUniform, 1, GL_FALSE,lightPosition);
+////
+////	//*** bind vao ****
+////
+////	/*modelviewProjectionMatrix = gPerspectiveProjectionMatrix * modelviewMatrix;
+////
+////	glUniformMatrix4fv(gMVPUniform, 1, GL_FALSE, modelviewProjectionMatrix);
+////	modelviewMatrix = translate(1.5f, 0.0f, -6.0f);*/
+////
+////	glBindVertexArray(gvao_Square);
+////
+////	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+////	//**** unbind vao ****
+////	glBindVertexArray(0);
+////
+////	//stop using OpenGL program Object
+////	glUseProgram(0);
+////
+////	SwapBuffers(ghdc);
+////
+////}
+////
+////void resize(int width, int height)
+////{
+////	//code
+////	if (height == 0)
+////		height = 1;
+////	glViewport(0, 0, (GLsizei)width, (GLsizei)height);
+////
+////	gPerspectiveProjectionMatrix = perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
+////}
+////
+////void uninitialize(void)
+////{
+////	//UNINITIALIZATION CODE
+////	if (gbFullScreen == true)
+////	{
+////		dwStyle = GetWindowLong(ghwnd, GWL_STYLE);
+////		SetWindowLong(ghwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+////		SetWindowPlacement(ghwnd, &wpPrev);
+////		SetWindowPos(ghwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
+////		ShowCursor(TRUE);
+////	}
+////
+////	//destroy vao
+////	if (gVao_Triangle)
+////	{
+////		glDeleteVertexArrays(1, &gVao_Triangle);
+////		gVao_Triangle = 0;
+////	}
+////
+////	if (gvao_Square)
+////	{
+////		glDeleteVertexArrays(1, &gvao_Square);
+////		gvao_Square = 0;
+////	}
+////
+////	//destroy vbo
+////	if (gVbo)
+////	{
+////		glDeleteBuffers(1, &gVbo);
+////		gVbo = 0;
+////	}
+////	//destroy vbo
+////	if (vboNormals)
+////	{
+////		glDeleteBuffers(1, &vboNormals);
+////		vboNormals = 0;
+////	}
+////
+////	//detach vertex shader from shader program object
+////	glDetachShader(gShaderProgramObject, gVertexShaderObject);
+////
+////	//detach fragment shader from shader program object
+////	glDetachShader(gShaderProgramObject, gFragmentShaderObject);
+////
+////	//delete vertex shader object 
+////	glDeleteShader(gVertexShaderObject);
+////	gVertexShaderObject = 0;
+////
+////	//delete fragment shader object
+////	glDeleteShader(gFragmentShaderObject);
+////	gFragmentShaderObject = 0;
+////
+////	//unlink shader program
+////	glUseProgram(0);
+////
+////	wglMakeCurrent(NULL, NULL);
+////
+////	wglDeleteContext(ghrc);
+////	ghrc = NULL;
+////
+////	ReleaseDC(ghwnd, ghdc);
+////	ghdc = NULL;
+////
+////	DestroyWindow(ghwnd);
+////	ghwnd = NULL;
+////
+////}
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <Windows.h>
+#include<stdio.h>
+#include<gl/glew.h>
+#include<gl/GL.h>
+
+#include"vmath.h"
+
+#define WIN_WIDTH 800
+#define WIN_HEIGHT 600
+
+#pragma comment(lib,"glew32.lib")
+#pragma comment(lib,"opengl32.lib")
+
+using namespace vmath;
+
+
+enum
+{
+	VDG_ATTRIBUTE_VERTEX = 0,
+	VDG_ATTRIBUTE_COLOR,
+	VDG_ATTRIBUTE_NORMAL,
+	VDG_ATTRIBUTE_TEXTURE0,
+};
+
+//Prototype of WndProc() declared Globally
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+
+//Global variable declarations
+FILE *gpFile = NULL;
+
+HWND ghwnd = NULL;
+HDC ghdc = NULL;
+HGLRC ghrc = NULL;
+
+
+DWORD dwStyle;
+WINDOWPLACEMENT wpPrev = { sizeof(WINDOWPLACEMENT) };
+
+bool gbActiveWindow = false;
+bool gbEscapeKeyIsPressed = false;
+bool gbFullScreen = false;
+
+GLuint gVertexShaderObject;
+GLuint gFragmentShaderObject;
+GLuint gShaderProgramObject;
+
+GLuint gVao_Triangle;
+GLuint gvao_Square;
+GLuint gVbo;
+GLuint vboNormals;
+GLuint gMVPUniform;
+GLuint gmodelViewUniform;
+
+
+
+//GLuint gVao_Smiley;
+//GLuint gVbo_Smiley_position;
+//GLuint gVbo_Smiley_texture;
+GLuint gMVPMatrixUniform;
+GLuint BrickColUniform;
+GLuint MortarColorUniform;
+GLuint BrickSizeUniform;
+GLuint BrickPckUniform;
+GLuint lightPositionUniform;
+
+mat4 gPerspectiveProjectionMatrix;
+
+//main()
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
+{
+	//function prototype
+	void display();
+	void initialize();
+	void uninitialize(void);
+
+	//variable declaration
+	WNDCLASSEX wndclass;
+	HWND hwnd;
+	MSG msg;
+	TCHAR szClassName[] = TEXT("OpenGLPP");
+	bool bDone = false;
+
+	if (fopen_s(&gpFile, "Log.txt", "w") != 0)
+	{
+		MessageBox(NULL, TEXT("Log File Can not be Created\Exitting.."), TEXT("ERROR"), MB_OK | MB_TOPMOST | MB_ICONSTOP);
+		exit(0);
+	}
+	else
+	{
+		fprintf(gpFile, "Log file is Successfully Openend \n");
+	}
+
+	//code
+	//initializing member of WNDCLASS
+	wndclass.cbSize = sizeof(WNDCLASSEX);
+	wndclass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	wndclass.cbClsExtra = 0;
+	wndclass.cbWndExtra = 0;
+	wndclass.hInstance = hInstance;
+	wndclass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wndclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wndclass.lpfnWndProc = WndProc;
+	wndclass.lpszClassName = szClassName;
+	wndclass.lpszMenuName = NULL;
+
+	//Registering Class
+	RegisterClassEx(&wndclass);
+
+	//CreateWindow
+	hwnd = CreateWindowEx(WS_EX_APPWINDOW,
+		szClassName,
+		TEXT("OpenGL Programmable PipeLine Using Native Windowing: First ortho Trianle Window Shree Ganeshaya Namaha"),
+		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
+		0,
+		0,
+		WIN_WIDTH,
+		WIN_HEIGHT,
+		NULL,
+		NULL,
+		hInstance,
+		NULL
+		);
+
+	ghwnd = hwnd;
+
+	//intitialize()
+	initialize();
+
+	ShowWindow(hwnd, SW_SHOW);
+	SetForegroundWindow(hwnd);
+	SetFocus(hwnd);
+
+	//Message Loop
+	while (bDone == false)
+	{
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			if (msg.message == WM_QUIT)
+				bDone = true;
+			else
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		}
+		else
+		{
+			//display();
+			if (gbActiveWindow == true)
+			{
+				display();
+
+				if (gbEscapeKeyIsPressed == true)
+					bDone = true;
+			}
+		}
+	}
+
+	uninitialize();
+	return((int)msg.wParam);
+
+}
+
+//WndProc()
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	//function prototypes
+	//	void display();
+	void resize(int, int);
+	void ToggleFullScreen(void);
+	void uninitialize(void);
+
+	//code
+	switch (iMsg)
+	{
+	case WM_ACTIVATE:
+		if (HIWORD(wParam) == 0)
+			gbActiveWindow = true;
+		else
+			gbActiveWindow = false;
+		break;
+	case WM_PAINT:
+		//		display();
+		break;
+
+	case WM_SIZE:
+		resize(LOWORD(lParam), HIWORD(lParam));
+		break;
+
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_ESCAPE:
+			gbEscapeKeyIsPressed = true;
+			break;
+
+		case 0x46:			//for 'f' or 'F'
+			if (gbFullScreen == false)
+			{
+				ToggleFullScreen();
+				gbFullScreen = true;
+			}
+			else
+			{
+				ToggleFullScreen();
+				gbFullScreen = false;
+			}
+			break;
+		default:
+			break;
+		}
+		break;
+
+
+	case WM_LBUTTONDOWN:
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+
+	default:
+		break;
+	}
+	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
+
+}
+
+
+void ToggleFullScreen(void)
+{
+	//variable declarations
+	MONITORINFO mi;
+
+	//code
+	if (gbFullScreen == false)
+	{
+		dwStyle = GetWindowLong(ghwnd, GWL_STYLE);
+		if (dwStyle & WS_OVERLAPPEDWINDOW)
+		{
+			mi = { sizeof(MONITORINFO) };
+			if (GetWindowPlacement(ghwnd, &wpPrev) && GetMonitorInfo(MonitorFromWindow(ghwnd, MONITORINFOF_PRIMARY), &mi))
+			{
+				SetWindowLong(ghwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+				SetWindowPos(ghwnd, HWND_TOP, mi.rcMonitor.left,
+					mi.rcMonitor.top,
+					mi.rcMonitor.right - mi.rcMonitor.left,
+					mi.rcMonitor.bottom - mi.rcMonitor.top,
+					SWP_NOZORDER | SWP_FRAMECHANGED);
+			}
+
+		}
+		ShowCursor(FALSE);
+	}
+	else
+	{
+		//code
+		SetWindowLong(ghwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+		SetWindowPlacement(ghwnd, &wpPrev);
+		SetWindowPos(ghwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
+		ShowCursor(TRUE);
+	}
+}
+
+void initialize()
+{
+	//function prototype
+	void uninitialize(void);
+	void resize(int, int);
+
+	//variable declaration
+	PIXELFORMATDESCRIPTOR pfd;
+	int iPixelFormatIndex;
+
+	//code
+	ZeroMemory(&pfd, sizeof(PIXELFORMATDESCRIPTOR));
+
+	//Initialization code
+	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+	pfd.nVersion = 1;
+	pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	pfd.iPixelType = PFD_TYPE_RGBA;
+	pfd.cColorBits = 8;
+	pfd.cRedBits = 8;
+	pfd.cGreenBits = 8;
+	pfd.cBlueBits = 8;
+	pfd.cAlphaBits = 8;
+
+	ghdc = GetDC(ghwnd);
+
+	iPixelFormatIndex = ChoosePixelFormat(ghdc, &pfd);
+	if (iPixelFormatIndex == 0)
+	{
+		ReleaseDC(ghwnd, ghdc);
+		ghdc = NULL;
+	}
+	if (SetPixelFormat(ghdc, iPixelFormatIndex, &pfd) == FALSE)
+	{
+		ReleaseDC(ghwnd, ghdc);
+		ghdc = NULL;
+	}
+
+	ghrc = wglCreateContext(ghdc);
+	if (ghrc == NULL)
+	{
+		ReleaseDC(ghwnd, ghdc);
+		ghdc = NULL;
+	}
+
+	if (wglMakeCurrent(ghdc, ghrc) == FALSE)
+	{
+		wglDeleteContext(ghrc);
+		ghrc = NULL;
+		ReleaseDC(ghwnd, ghdc);
+		ghdc = NULL;
+	}
+
+	GLenum glew_error = glewInit();
+	if (glew_error != GLEW_OK)
+	{
+		wglDeleteContext(ghrc);
+		ghrc = NULL;
+		ReleaseDC(ghwnd, ghdc);
+		ghdc = NULL;
+	}
+
+	//******** VERTEX SHADER ******
+	//create shader
+	gVertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
+
+	//provide source code to shader
+	const GLchar *vertexShaderSourceCode =
+		"#version 430 core" \
+		"\n" \
+		"in vec4 vPosition;" \
+		"in vec3 vNormal;" \
+		"uniform vec3 u_light_position;" \
+		"uniform mat4 u_model_view_matrix;" \
+		"uniform mat4 u_model_view_projection_matrix;"\
+		"out float LightIntensity;" \
+		"out vec2 MCposition;" \
+
+		"const float SpecularContribution = 0.3;" \
+		"const float DiffuseContribution = 1.0 - SpecularContribution;" \
+		"void main(void)" \
+		"{" \
+		"vec4 eye_coordinates= u_model_view_matrix *vPosition;" \
+		"vec3 transformed_normals = normalize(mat3(u_model_view_matrix) * vNormal);" \
+		"vec3 light_direction = normalize(vec3(u_light_position) - eye_coordinates.xyz);"\
+		"vec3 reflection_vector = reflect(-light_direction,transformed_normals);"\
+		"vec3 viewer_vector = normalize(-eye_coordinates.xyz);" \
+		"float diffuse = max(dot(light_direction,transformed_normals),0.0);" \
+		"float spec =0.0;" \
+
+		"if(diffuse > 0.0)" \
+		"{" \
+		"spec = max(dot(reflection_vector,viewer_vector),0.0);"\
+		"spec = pow(spec,16.0);" \
+		"}" \
+		"LightIntensity= DiffuseContribution * diffuse + SpecularContribution * spec;" \
+		"MCposition = vPosition.xy;" \
+		"gl_Position =  u_model_view_projection_matrix *u_model_view_matrix* vPosition;" \
+		"}";
+
+	glShaderSource(gVertexShaderObject, 1, (const GLchar **)&vertexShaderSourceCode, NULL);
+
+	//compile shader
+	glCompileShader(gVertexShaderObject);
+	GLint iInfoLength = 0;
+	GLint iShaderCompiledStatus = 0;
+	char *szInfoLog = NULL;
+
+	glGetShaderiv(gVertexShaderObject, GL_COMPILE_STATUS, &iShaderCompiledStatus);
+	if (iShaderCompiledStatus == GL_FALSE)
+	{
+		glGetShaderiv(gVertexShaderObject, GL_INFO_LOG_LENGTH, &iInfoLength);
+		if (iInfoLength > 0)
+		{
+			szInfoLog = (char *)malloc(iInfoLength);
+			if (szInfoLog != NULL)
+			{
+				GLsizei written;
+				glGetShaderInfoLog(gVertexShaderObject, iInfoLength, &written, szInfoLog);
+				fprintf(gpFile, "Vertex Shader Compilation Log:%s\n", szInfoLog);
+				free(szInfoLog);
+				uninitialize();
+				exit(0);
+			}
+		}
+	}
+
+	//**********FRAGMENT SHADER*********
+	//create shader
+	gFragmentShaderObject = glCreateShader(GL_FRAGMENT_SHADER);
+
+	//provide source code to shader
+	const GLchar *fragmentShaderSourceCode =
+		"#version 430 core" \
+		"\n" \
+		"#define Integral(x,p,notp) ((floor(x)*(p))+max(fract(x)-(notp),0.0))"\
+		"\n" \
+		"uniform vec3 BrickColor,MortarColor;" \
+		"uniform vec2 BrickSize;" \
+		"uniform vec2 BrickPct;" \
+		"in vec2 MCposition;" \
+		"in float LightIntensity;" \
+		"out vec4 FragColor;" \
+
+		"void main(void)" \
+		"{" \
+		"vec3 color;" \
+		"vec2 position,fw,useBrick;" \
+		"position = MCposition/BrickSize;" \
+		"if(fract(position.y * 0.5) > 0.5)" \
+		"{" \
+		"position.x += 0.5;" \
+		//		"position.y += 0.5;" \
+
+		"}" \
+		"fw = fwidth(position);"\
+		"position = fract(position);"\
+		//"useBrick = step(position,BrickPct);" \
+		
+		"useBrick = (Integral(position + fw,BrickPct.y-10.0,vec2(0.30,0.25)) - Integral(position,BrickPct,vec2(0.20,0.15)))/fw;"\
+		"color = mix(MortarColor,BrickColor,useBrick.x * useBrick.y);" \
+		"color *= LightIntensity;" \
+		"FragColor = vec4(color,1.0);" \
+		"}";
+
+	glShaderSource(gFragmentShaderObject, 1, (const GLchar**)&fragmentShaderSourceCode, NULL);
+
+	//compile shader
+	glCompileShader(gFragmentShaderObject);
+	glGetShaderiv(gFragmentShaderObject, GL_COMPILE_STATUS, &iShaderCompiledStatus);
+	if (iShaderCompiledStatus == GL_FALSE)
+	{
+		glGetShaderiv(gFragmentShaderObject, GL_INFO_LOG_LENGTH, &iShaderCompiledStatus);
+		if (iInfoLength > 0)
+		{
+			szInfoLog = (char *)malloc(iInfoLength);
+			if (szInfoLog != NULL)
+			{
+				GLsizei written;
+				glGetShaderInfoLog(gFragmentShaderObject, iInfoLength, &written, szInfoLog);
+				fprintf(gpFile, "Fragment Shader Compilation Log : %s\n", szInfoLog);
+				free(szInfoLog);
+				uninitialize();
+				exit(0);
+			}
+		}
+	}
+
+
+
+	//********** SHADER PROGRAM *********
+	//create
+	gShaderProgramObject = glCreateProgram();
+
+	//attach vertex shader to shader program
+	glAttachShader(gShaderProgramObject, gVertexShaderObject);
+
+	//attach fragment shader to shader program
+	glAttachShader(gShaderProgramObject, gFragmentShaderObject);
+
+	//pre-link binding of shader program object with vertex position attribute
+	glBindAttribLocation(gShaderProgramObject, VDG_ATTRIBUTE_VERTEX, "vPosition");
+
+	glBindAttribLocation(gShaderProgramObject, VDG_ATTRIBUTE_NORMAL, "vNormal");
+
+	//Link Shader
+	glLinkProgram(gShaderProgramObject);
+	GLint iShaderProgramLinkStatus = 0;
+	glGetProgramiv(gShaderProgramObject, GL_LINK_STATUS, &iShaderProgramLinkStatus);
+	if (iShaderProgramLinkStatus == GL_FALSE)
+	{
+		glGetProgramiv(gShaderProgramObject, GL_INFO_LOG_LENGTH, &iInfoLength);
+		if (iInfoLength > 0)
+		{
+			szInfoLog = (char *)malloc(iInfoLength);
+			if (szInfoLog != NULL)
+			{
+				GLsizei written;
+				glGetProgramInfoLog(gShaderProgramObject, iInfoLength, &written, szInfoLog);
+				fprintf(gpFile, "Shader Program LinK Log %s\n");
+				free(szInfoLog);
+				uninitialize();
+				exit(0);
+			}
+		}
+	}
+
+
+	//get MVP uniform locaion
+	gmodelViewUniform = glGetUniformLocation(gShaderProgramObject, "u_model_view_matrix");
+
+	BrickColUniform = glGetUniformLocation(gShaderProgramObject, "BrickColor");
+	BrickPckUniform = glGetUniformLocation(gShaderProgramObject, "BrickPct");
+
+	BrickSizeUniform = glGetUniformLocation(gShaderProgramObject, "BrickSize");
+	MortarColorUniform = glGetUniformLocation(gShaderProgramObject, "MortarColor");
+	lightPositionUniform = glGetUniformLocation(gShaderProgramObject, "u_light_position");
+	gMVPMatrixUniform = glGetUniformLocation(gShaderProgramObject, "u_model_view_projection_matrix");
+
+	//**** vertices, colors, shader attribs, vbo, vao initializations ****//
+
+	const GLfloat normal[] =
+	{
+		//first set
+		/*0.0f, 1.0f, 0.0f,
+
+		0.0f,-1.0f, 0.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+
+		-1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,*/
+
+
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+
+//		-1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+
+/*		0.0f,-1.0f, 0.0f,
+
+		0.0f, 0.0f, 1.0f,
+
+		*///0.0f, 0.0f, -1.0f,
+
+		//		1.0f, 0.0f, 0.0f,
+
+		//		-1.0f, 0.0f, 0.0f,
+	};
+
+	const GLfloat squareVertices[] =
+	{
+		-1.0f,1.0f,0.0f,
+		-1.0f,-1.0f,0.0f,
+		1.0f,-1.0f,0.0f,
+		1.0f,1.0f,0.0f
+	};
+
+
+
+	glGenVertexArrays(1, &gvao_Square);
+	glBindVertexArray(gvao_Square);
+
+	glGenBuffers(1, &gVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, gVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(squareVertices), squareVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(VDG_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(VDG_ATTRIBUTE_VERTEX);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glGenBuffers(1, &vboNormals);
+	glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(normal), normal, GL_STATIC_DRAW);
+	glVertexAttribPointer(VDG_ATTRIBUTE_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(VDG_ATTRIBUTE_NORMAL);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);					//finishing completion of above gVaoSquare
+
+
+	glShadeModel(GL_FLAT);
+	glClearDepth(1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	//glEnable(GL_CULL_FACE);
+	glEnable(GL_TEXTURE_2D);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+	gPerspectiveProjectionMatrix = mat4::identity();
+
+	resize(WIN_WIDTH, WIN_HEIGHT);
+
+}
+
+void display(void)
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//start using OpenGL program Object
+	glUseProgram(gShaderProgramObject);
+
+	//OpenL Drawing 
+	//set modelview & modelviewprojection matrices to identity 
+	mat4 modelviewMatrix = mat4::identity();
+	mat4 modelviewProjectionMatrix = mat4::identity();
+	modelviewMatrix = translate(0.0f, 0.0f, -3.0f);
+
+	//multipley the modelview and orthographic matrix to get modelviewprojection matrix
+	modelviewProjectionMatrix = gPerspectiveProjectionMatrix * modelviewMatrix;	//ORDER IS IMPORTANT
+
+	glUniformMatrix4fv(gMVPMatrixUniform, 1, GL_FALSE, modelviewProjectionMatrix);
+
+	glUniformMatrix4fv(gmodelViewUniform, 1, GL_FALSE, modelviewMatrix);
+
+
+	float BrickColor[] = { 1.0,0.3,0.2 };
+	glUniform3fv(BrickColUniform, 1, (GLfloat*)BrickColor);
+
+	float BrickPct[] = { 1.90,1.85};
+	glUniform2fv(BrickPckUniform, 1, (GLfloat*)BrickPct);
+
+	float MortarColor[] = { 0.85f,0.86f,0.84f };
+	glUniform3fv(MortarColorUniform, 1, (GLfloat*) MortarColor);
+	
+	float BrickSize[] = { 0.30,0.15 };
+	glUniform2fv(BrickSizeUniform, 1, (GLfloat*)BrickSize);
+	
+	float lightPosition[] = { 4.0f,4.0f,4.0f };
+	glUniform3fv(lightPositionUniform, 1, (GLfloat*)lightPosition);
+
+	//*** bind vao ****
+
+	/*modelviewProjectionMatrix = gPerspectiveProjectionMatrix * modelviewMatrix;
+
+	glUniformMatrix4fv(gMVPUniform, 1, GL_FALSE, modelviewProjectionMatrix);
+	modelviewMatrix = translate(1.5f, 0.0f, -6.0f);*/
+	
+	glBindVertexArray(gvao_Square);
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	//**** unbind vao ****
+	glBindVertexArray(0);
+
+	//stop using OpenGL program Object
+	glUseProgram(0);
+
+	SwapBuffers(ghdc);
+
+}
+
+void resize(int width, int height)
+{
+	//code
+	if (height == 0)
+		height = 1;
+	glViewport(0, 0, (GLsizei)width, (GLsizei)height);
+
+	gPerspectiveProjectionMatrix = perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
+}
+
+void uninitialize(void)
+{
+	//UNINITIALIZATION CODE
+	if (gbFullScreen == true)
+	{
+		dwStyle = GetWindowLong(ghwnd, GWL_STYLE);
+		SetWindowLong(ghwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+		SetWindowPlacement(ghwnd, &wpPrev);
+		SetWindowPos(ghwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
+		ShowCursor(TRUE);
+	}
+
+	//destroy vao
+	if (gVao_Triangle)
+	{
+		glDeleteVertexArrays(1, &gVao_Triangle);
+		gVao_Triangle = 0;
+	}
+
+	if (gvao_Square)
+	{
+		glDeleteVertexArrays(1, &gvao_Square);
+		gvao_Square = 0;
+	}
+
+	//destroy vbo
+	if (gVbo)
+	{
+		glDeleteBuffers(1, &gVbo);
+		gVbo = 0;
+	}
+	//destroy vbo
+	if (vboNormals)
+	{
+		glDeleteBuffers(1, &vboNormals);
+		vboNormals = 0;
+	}
+
+	//detach vertex shader from shader program object
+	glDetachShader(gShaderProgramObject, gVertexShaderObject);
+
+	//detach fragment shader from shader program object
+	glDetachShader(gShaderProgramObject, gFragmentShaderObject);
+
+	//delete vertex shader object 
+	glDeleteShader(gVertexShaderObject);
+	gVertexShaderObject = 0;
+
+	//delete fragment shader object
+	glDeleteShader(gFragmentShaderObject);
+	gFragmentShaderObject = 0;
+
+	//unlink shader program
+	glUseProgram(0);
+
+	wglMakeCurrent(NULL, NULL);
+
+	wglDeleteContext(ghrc);
+	ghrc = NULL;
+
+	ReleaseDC(ghwnd, ghdc);
+	ghdc = NULL;
+
+	DestroyWindow(ghwnd);
+	ghwnd = NULL;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
